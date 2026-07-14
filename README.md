@@ -38,6 +38,10 @@ A minimal Google Apps Script that polls RSS/Atom feeds and emails you (via Gmail
    ```
 5. In the Apps Script editor, run `setup()` once. This will prompt you to authorize Gmail/UrlFetch/trigger permissions, and installs the 30-minute polling trigger.
 
+## Important: edit locally, not in the online editor
+
+`clasp push` overwrites the Apps Script project with your local files. If you edit `Config.gs` (or anything else) directly in the online editor, run `clasp pull` first to bring those changes back locally before pushing again — otherwise the next `clasp push` will silently discard them.
+
 ## Privacy
 
 `Config.gs` and `.clasp.json` are gitignored — your feed list and your script ID never get committed. Anyone cloning this repo starts from `Config.gs.sample` and deploys to their own Apps Script project with their own feeds.
