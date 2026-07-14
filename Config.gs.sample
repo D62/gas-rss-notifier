@@ -1,0 +1,9 @@
+// Copy this file to Config.gs and edit with your own feeds.
+// Config.gs is gitignored so your feed list stays private.
+
+// Each feed: url (required), keywords (optional - if set, only items whose
+// title/summary match at least one keyword trigger an email).
+const FEEDS = [
+  { url: 'https://example.com/feed.xml', keywords: [] },
+  // { url: 'https://another.com/rss', keywords: ['launch', 'release'] },
+];
