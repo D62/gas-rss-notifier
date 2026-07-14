@@ -98,9 +98,18 @@ function sendDigest(matches) {
     ? 'RSS update: ' + matches[0].item.title
     : 'RSS updates: ' + matches.length + ' new items';
 
-  const body = matches
-    .map(m => m.item.title + '\n' + m.item.link + '\nFrom feed: ' + m.feedUrl)
-    .join('\n\n');
+  const byFeed = new Map();
+  matches.forEach(m => {
+    if (!byFeed.has(m.feedUrl)) byFeed.set(m.feedUrl, []);
+    byFeed.get(m.feedUrl).push(m.item);
+  });
+
+  const body = Array.from(byFeed.entries())
+    .map(([feedUrl, items]) => {
+      const itemLines = items.map(item => item.title + '\n' + item.link).join('\n\n');
+      return feedUrl + '\n\n' + itemLines;
+    })
+    .join('\n\n---\n\n');
 
   MailApp.sendEmail(NOTIFY_EMAIL, subject, body);
 }
