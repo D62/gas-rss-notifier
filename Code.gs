@@ -12,6 +12,7 @@ const PROP_PREFIX = 'seen_';
 
 function checkFeeds() {
   const props = PropertiesService.getScriptProperties();
+  const matches = [];
 
   FEEDS.forEach(feed => {
     let items;
@@ -36,13 +37,15 @@ function checkFeeds() {
 
     newItems
       .filter(item => matchesKeywords(item, feed.keywords))
-      .forEach(item => sendNotification(feed.url, item));
+      .forEach(item => matches.push({ feedUrl: feed.url, item }));
 
     if (newItems.length) {
       const updatedIds = items.slice(0, 50).map(i => i.id);
       props.setProperty(propKey, JSON.stringify(updatedIds));
     }
   });
+
+  if (matches.length) sendDigest(matches);
 }
 
 function fetchFeedItems(feedUrl) {
@@ -84,9 +87,15 @@ function matchesKeywords(item, keywords) {
   return keywords.some(k => haystack.includes(k.toLowerCase()));
 }
 
-function sendNotification(feedUrl, item) {
-  const subject = 'RSS update: ' + item.title;
-  const body = item.title + '\n\n' + item.link + '\n\nFrom feed: ' + feedUrl;
+function sendDigest(matches) {
+  const subject = matches.length === 1
+    ? 'RSS update: ' + matches[0].item.title
+    : 'RSS updates: ' + matches.length + ' new items';
+
+  const body = matches
+    .map(m => m.item.title + '\n' + m.item.link + '\nFrom feed: ' + m.feedUrl)
+    .join('\n\n');
+
   MailApp.sendEmail(NOTIFY_EMAIL, subject, body);
 }
 
