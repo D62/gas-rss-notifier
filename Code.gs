@@ -9,6 +9,7 @@
 
 const NOTIFY_EMAIL = Session.getActiveUser().getEmail();
 const PROP_PREFIX = 'seen_';
+const SEEN_ID_CAP = 300; // stay well under Apps Script's 9KB per-property limit
 
 function checkFeeds() {
   const props = PropertiesService.getScriptProperties();
@@ -26,21 +27,26 @@ function checkFeeds() {
     const propKey = PROP_PREFIX + Utilities.base64EncodeWebSafe(
       Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, feed.url)
     );
-    const seenIds = new Set(JSON.parse(props.getProperty(propKey) || '[]'));
+    const prevIds = JSON.parse(props.getProperty(propKey) || '[]');
+    const seenIds = new Set(prevIds);
     const newItems = items.filter(item => !seenIds.has(item.id));
 
     // First run for this feed: just record state, don't spam an inbox.
-    if (seenIds.size === 0 && newItems.length) {
-      props.setProperty(propKey, JSON.stringify(items.slice(0, 50).map(i => i.id)));
-      return;
+    const isFirstRun = seenIds.size === 0 && newItems.length > 0;
+    if (!isFirstRun) {
+      newItems
+        .filter(item => matchesKeywords(item, feed.keywords))
+        .forEach(item => matches.push({ feedUrl: feed.url, item }));
     }
 
-    newItems
-      .filter(item => matchesKeywords(item, feed.keywords))
-      .forEach(item => matches.push({ feedUrl: feed.url, item }));
-
     if (newItems.length) {
-      const updatedIds = items.slice(0, 50).map(i => i.id);
+      // Keep every id still present in the feed (so items don't fall out of
+      // the seen list just by scrolling past the top N and later resurfacing
+      // due to an edit), then pad with older seen ids up to the cap.
+      const currentIds = items.map(i => i.id);
+      const currentIdSet = new Set(currentIds);
+      const staleIds = prevIds.filter(id => !currentIdSet.has(id));
+      const updatedIds = currentIds.concat(staleIds).slice(0, SEEN_ID_CAP);
       props.setProperty(propKey, JSON.stringify(updatedIds));
     }
   });
