@@ -3,6 +3,8 @@
  *
  * Setup:
  * 1. Copy Config.gs.sample to Config.gs and edit FEEDS (url + optional keywords).
+ *    Optional linkContains: array of URL fragments (e.g. '/category/subcategory/');
+ *    if set, only items whose link contains at least one fragment are notified.
  * 2. Run setup() once to create the time-driven trigger.
  * 3. Apps Script will email you when a feed has a new item.
  */
@@ -35,6 +37,7 @@ function checkFeeds() {
     const isFirstRun = seenIds.size === 0 && newItems.length > 0;
     if (!isFirstRun) {
       newItems
+        .filter(item => matchesLink(item, feed.linkContains))
         .filter(item => matchesKeywords(item, feed.keywords))
         .forEach(item => matches.push({ feedUrl: feed.url, item }));
     }
@@ -85,6 +88,11 @@ function fetchFeedItems(feedUrl) {
 function getChildText(entry, name, isAtom) {
   const el = isAtom ? entry.getChild(name, entry.getNamespace()) : entry.getChild(name);
   return el ? el.getText() : '';
+}
+
+function matchesLink(item, parts) {
+  if (!parts || !parts.length) return true;
+  return parts.some(p => item.link.includes(p));
 }
 
 function matchesKeywords(item, keywords) {

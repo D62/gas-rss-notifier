@@ -2,8 +2,11 @@
 // Config.gs is gitignored so your feed list stays private.
 
 // Each feed: url (required), keywords (optional - if set, only items whose
-// title/summary match at least one keyword trigger an email).
+// title/summary match at least one keyword trigger an email), linkContains
+// (optional - if set, only items whose link contains at least one of these
+// URL fragments are considered).
 const FEEDS = [
   { url: 'https://example.com/feed.xml', keywords: [] },
   // { url: 'https://another.com/rss', keywords: ['launch', 'release'] },
+  // { url: 'https://forum.example.com/rss', linkContains: ['/category/subcategory/'], keywords: ['foo', 'bar'] },
 ];
