@@ -103,8 +103,8 @@ function matchesKeywords(item, keywords) {
 
 function sendDigest(matches) {
   const subject = matches.length === 1
-    ? 'RSS update: ' + matches[0].item.title
-    : 'RSS updates: ' + matches.length + ' new items';
+    ? '🟠 ' + matches[0].item.title
+    : '🟠 ' + matches.length + ' new items';
 
   const byFeed = new Map();
   matches.forEach(m => {
